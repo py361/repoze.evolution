@@ -1,5 +1,4 @@
 from pkg_resources import EntryPoint
-import transaction
 from zope.interface import implements
 from zope.interface import Interface
 
@@ -17,7 +16,6 @@ class IEvolutionManager(Interface):
 
 class ZODBEvolutionManager:
     key = 'repoze.evolution'
-    transaction = transaction
     implements(IEvolutionManager)
     def __init__(self, context, evolve_packagename, sw_version):
         """ Initialize a ZODB evolution manager.  ``context`` is an
@@ -26,6 +24,8 @@ class ZODBEvolutionManager:
         is the Python dotted package name of a package which contains
         evolution scripts.  ``sw_version`` is the current software
         version of the software represented by this manager."""
+        import transaction
+        self.transaction = transaction
         self.context = context
         self.package_name = evolve_packagename
         self.sw_version = sw_version
