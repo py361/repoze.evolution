@@ -52,9 +52,10 @@ setup(name='repoze.evolution',
       include_package_data=True,
       namespace_packages=['repoze'],
       zip_safe=False,
-      tests_require = requires,
       install_requires = requires,
+      tests_require = requires + ['transaction'],
       test_suite="repoze.evolution",
+      extras_require={'transaction':['transaction']},
       entry_points = """\
       """
       )
