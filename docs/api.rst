@@ -17,7 +17,7 @@ Interfaces
 This is the interface which must be supported by ``manager`` objects
 which are passed to e.g. ``evolve_to_latest``.
 
-.. code-block::
+.. code-block:: python
 
     class repoze.evolution.IEvolutionManager(Interface):
         def get_sw_version():
@@ -31,3 +31,4 @@ which are passed to e.g. ``evolve_to_latest``.
             method is also responsible for setting the db version after a
             success."""
 
+The ``repoze.evolution.ZODBEvolutionManager`` implements this interface.
