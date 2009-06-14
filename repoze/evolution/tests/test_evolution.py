@@ -68,6 +68,18 @@ class ZODBEvolutionManagerTests(unittest.TestCase):
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 1)
 
+    def test_evolve_swver_not_integer(self):
+        root = {'repoze.evolution':
+                {'repoze.evolution.tests.fixtureapp.evolve':1}}
+        manager = self._makeOne(root, '1')
+        self.assertRaises(ValueError, self._evolve, manager)
+
+    def test_evolve_dbver_not_integer(self):
+        root = {'repoze.evolution':
+                {'repoze.evolution.tests.fixtureapp.evolve':'1'}}
+        manager = self._makeOne(root, 1)
+        self.assertRaises(ValueError, self._evolve, manager)
+
 class Dummy(object):
     pass
 
