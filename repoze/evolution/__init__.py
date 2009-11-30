@@ -57,7 +57,7 @@ class ZODBEvolutionManager:
 
     def _set_db_version(self, version):
         registry = self.root.setdefault(self.key, {})
-        db_version = registry[self.package_name] = version
+        registry[self.package_name] = version
         self.root[self.key] = registry
 
 def evolve_to_latest(manager):

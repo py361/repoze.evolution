@@ -1,3 +1,8 @@
+Next release
+------------
+
+- Remove unncessary assignment.
+
 0.2 (2009-06-25)
 ----------------
 
