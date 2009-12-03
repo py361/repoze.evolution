@@ -18,6 +18,8 @@ Next release
   change, as databases for which no initial version is supplied explicitly will
   now fail to evolve.
 
+- Added new public method, ``set_db_version()`` to IEvolutionManager interface.
+
 0.2 (2009-06-25)
 ----------------
 

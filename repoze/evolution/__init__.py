@@ -9,6 +9,11 @@ class IEvolutionManager(Interface):
     def get_db_version():
         """ Return the database version of the managed package """
 
+    def set_db_version(version):
+        """ Write the database version of the managed package to the database.
+        Should be used to bootstrap your database when the database is created.
+        """
+
     def evolve_to(version):
         """ Perform work to evolve to the integer ``version``.  This
         method is also responsible for setting the db version after a
@@ -55,13 +60,16 @@ class ZODBEvolutionManager:
         evmodule = EntryPoint.parse('x=%s' % scriptname).load(False)
         self.transaction.begin()
         evmodule.evolve(self.context)
-        self._set_db_version(version)
+        self.set_db_version(version)
         self.transaction.commit()
 
-    def _set_db_version(self, version):
+    def set_db_version(self, version):
         registry = self.root.setdefault(self.key, {})
         registry[self.package_name] = version
         self.root[self.key] = registry
+
+    # b/w compatibility
+    _set_db_version = set_db_version
 
 def evolve_to_latest(manager):
     """ Evolve the database to the latest software version using the
@@ -82,4 +90,3 @@ def evolve_to_latest(manager):
             manager.evolve_to(version)
         return version
     return db_version
-

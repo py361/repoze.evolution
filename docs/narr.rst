@@ -31,6 +31,15 @@ argument, ``initial_db_version``::
   manager=ZODBEvolutionManager(context, evolve_packagename='my.package.evolve',
                                sw_version=2, initial_db_version=0)
 
+In general, when creating a new instance of an application you will need to
+bootstrap your database in some way.  At this time, you probably also want to
+set the version of your database to the software version.  To do this, use the
+``set_db_version()`` method of IEvolutionManager()::
+
+  manager=ZODBEvolutionManager(context, evolve_packagename='my.package.evolve',
+                               sw_version=2)
+  manager.set_db_version(2)
+
 To provide evolution steps in a package, create the package, and put
 modules in it named "evolve<N>.py" where N represents the software
 version: N must be >= 1 (0 represents the initial state).  For
