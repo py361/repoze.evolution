@@ -12,7 +12,7 @@ manager named ``ZODBEvolutionManager``.  You instantiate a
   from repoze.evolution import ZODBEvolutionManager
   persistent_object = get_persistent_object()
   context = persistent_object
-  manager=ZODBEvolutionManager(context, evolve_packagename='my.package.evolve', 
+  manager=ZODBEvolutionManager(context, evolve_packagename='my.package.evolve',
                                sw_version=2)
 
 The above code initializes a ZODB evolution manager.  The``context``
@@ -21,6 +21,15 @@ will be passed in to each evolution script's evolve method.
 ``evolve_packagename`` is the Python dotted package name of a package
 which contains evolution scripts.  ``sw_version`` is the current
 software version of the software represented by this manager.
+
+In the above example, if the database has no version already set on it, the
+evolution manager will not attempt to construe what version it should consider
+the database to be.  To specify the version the evolution manager should
+consider any unversioned database to be, pass a value for the optional fourth
+argument, ``initial_db_version``::
+
+  manager=ZODBEvolutionManager(context, evolve_packagename='my.package.evolve',
+                               sw_version=2, initial_db_version=0)
 
 To provide evolution steps in a package, create the package, and put
 modules in it named "evolve<N>.py" where N represents the software
@@ -45,4 +54,3 @@ version.
 
 Evolution steps are run when the ``evolve_to_latest`` function is used
 with an appropriate manager object.
-
