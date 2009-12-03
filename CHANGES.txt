@@ -1,5 +1,5 @@
-Next release
-------------
+0.3 (2009-12-03)
+----------------
 
 - Remove unncessary assignment.
 
