@@ -152,17 +152,6 @@ class Test_evolve_to_latest(unittest.TestCase):
         from repoze.evolution import evolve_to_latest
         return evolve_to_latest(*args, **kw)
 
-    def _makeMgr(self, root=None, sw_version=None, initial_db_version=None,
-                 txn=_marker):
-        from repoze.evolution import ZODBEvolutionManager as klass
-        context = DummyPersistent(root)
-        if txn is _marker:
-            txn = DummyTransaction()
-        manager = klass(context, 'repoze.evolution.tests.fixtureapp.evolve',
-                        sw_version, initial_db_version)
-        manager.transaction = txn
-        return manager
-
     def test_swver_not_integer(self):
         manager = DummyManager('1', 1)
         self.assertRaises(ValueError, self._callFUT, manager)
