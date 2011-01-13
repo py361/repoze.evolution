@@ -28,7 +28,6 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'setuptools',
     'zope.interface',
-    'repoze.tm2',
     ]
 
 setup(name='repoze.evolution',
@@ -54,10 +53,9 @@ setup(name='repoze.evolution',
       namespace_packages=['repoze'],
       zip_safe=False,
       install_requires = requires,
-      tests_require = requires + ['transaction', 'Sphinx'],
+      tests_require = requires + ['repoze.tm2', 'Sphinx'],
       test_suite="repoze.evolution",
-      extras_require={'transaction':['transaction']},
+      extras_require={'transaction':['repoze.tm2']},
       entry_points = """\
       """
-      )
-
+     )
