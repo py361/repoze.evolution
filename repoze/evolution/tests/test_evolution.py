@@ -15,7 +15,7 @@ class ZODBEvolutionManagerTests(unittest.TestCase):
         if txn is _marker:
             txn = DummyTransaction()
         manager = klass(context, 'repoze.evolution.tests.fixtureapp.evolve',
-                        sw_version, initial_db_version)
+                        sw_version, initial_db_version, txn)
         manager.transaction = txn
         return manager
 
@@ -77,35 +77,49 @@ class ZODBEvolutionManagerTests(unittest.TestCase):
 
     def test_evolve_to_no_key_in_root(self):
         root = {}
-        manager = self._makeOne(root, 1, 0)
+        txn = DummyTransaction()
+        manager = self._makeOne(root, 1, 0, txn)
 
         manager.evolve_to(1)
 
         self.assertEqual(manager.context.evolved, 1)
-        self.assertEqual(manager.transaction.committed, 1)
+        self.assertEqual(txn.committed, 1)
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 1)
 
     def test_evolve_to_w_key_in_root(self):
         root = {'repoze.evolution':
                 {'repoze.evolution.tests.fixtureapp.evolve':1}}
-        manager = self._makeOne(root, 2)
+        txn = DummyTransaction()
+        manager = self._makeOne(root, 2, None, txn)
 
         manager.evolve_to(2)
 
         self.assertEqual(manager.context.evolved, 2)
-        self.assertEqual(manager.transaction.committed, 1)
+        self.assertEqual(txn.committed, 1)
+        reg = root['repoze.evolution']
+        self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 2)
+
+    def test_evolve_to_w_key_in_root_txn_None(self):
+        root = {'repoze.evolution':
+                {'repoze.evolution.tests.fixtureapp.evolve':1}}
+        manager = self._makeOne(root, 2, None, None)
+
+        manager.evolve_to(2)
+
+        self.assertEqual(manager.context.evolved, 2)
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 2)
 
     def test_evolve_to_script_raises(self):
         root = {'repoze.evolution':
                 {'repoze.evolution.tests.fixtureapp.evolve':2}}
-        manager = self._makeOne(root, 3)
+        txn = DummyTransaction()
+        manager = self._makeOne(root, 3, None, txn)
 
         self.assertRaises(ValueError, manager.evolve_to, 3)
 
-        self.assertEqual(manager.transaction.committed, 0)
+        self.assertEqual(txn.committed, 0)
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 2)
 
@@ -117,22 +131,44 @@ class ZODBEvolutionManagerTests(unittest.TestCase):
         manager.set_db_version(22)
         self.assertEqual(root['repoze.evolution']['extant'], 22)
 
-    def test_set_db_version_extant_in_root(self):
+    def test_set_db_version_extant_in_root_wo_transaction(self):
         klass = self._getTargetClass()
         root = {'repoze.evolution': {'extant':11}}
         context = DummyPersistent(root)
-        manager = klass(context, 'extant', 42, 33)
+        manager = klass(context, 'extant', 42, 33, None)
         manager.set_db_version(22)
         self.assertEqual(root['repoze.evolution']['extant'], 22)
+
+    def test_set_db_version_extant_in_root_w_txn_wo_commit(self):
+        klass = self._getTargetClass()
+        root = {'repoze.evolution': {'extant':11}}
+        context = DummyPersistent(root)
+        txn = DummyTransaction()
+        manager = klass(context, 'extant', 42, 33, txn)
+        manager.set_db_version(22, commit=False)
+        self.assertEqual(root['repoze.evolution']['extant'], 22)
+        self.assertEqual(txn.committed, 0)
+
+    def test_set_db_version_extant_in_root_w_txn_w_commit(self):
+        klass = self._getTargetClass()
+        root = {'repoze.evolution': {'extant':11}}
+        context = DummyPersistent(root)
+        txn = DummyTransaction()
+        manager = klass(context, 'extant', 42, 33, txn)
+        manager.set_db_version(22, commit=True)
+        self.assertEqual(root['repoze.evolution']['extant'], 22)
+        self.assertEqual(txn.committed, 1)
 
     def test_set_db_version_missing_from_root_uses_initial_alt_key(self):
         klass = self._getTargetClass()
         root = {}
         context = DummyPersistent(root)
-        manager = klass(context, 'extant', 42, 22)
+        txn = DummyTransaction()
+        manager = klass(context, 'extant', 42, 22, txn)
         manager.key = 'alternate'
         manager.set_db_version(22)
         self.assertEqual(root['alternate']['extant'], 22)
+        self.assertEqual(txn.committed, 1)
 
     def test_set_db_version_extant_in_root_alt_key(self):
         klass = self._getTargetClass()
@@ -140,10 +176,12 @@ class ZODBEvolutionManagerTests(unittest.TestCase):
                 'alternate': {'extant':33},
                }
         context = DummyPersistent(root)
-        manager = klass(context, 'extant', 42, 22)
+        txn = DummyTransaction()
+        manager = klass(context, 'extant', 42, 22, txn)
         manager.key = 'alternate'
         manager.set_db_version(22)
         self.assertEqual(root['alternate']['extant'], 22)
+        self.assertEqual(txn.committed, 1)
 
 
 class Test_evolve_to_latest(unittest.TestCase):

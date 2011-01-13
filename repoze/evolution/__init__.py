@@ -19,11 +19,17 @@ class IEvolutionManager(Interface):
         method is also responsible for setting the db version after a
         success."""
 
+_marker = object()
 class ZODBEvolutionManager:
     key = 'repoze.evolution'
     implements(IEvolutionManager)
-    def __init__(self, context, evolve_packagename,
-                 sw_version, initial_db_version=None):
+    def __init__(self,
+                 context,
+                 evolve_packagename,
+                 sw_version,
+                 initial_db_version=None,
+                 txn=_marker,
+                ):
         """ Initialize a ZODB evolution manager.  ``context`` is an
         object which must inherit from ``persistent.Persistent`` that
         will be passed in to each evolution step.  evolve_packagename
@@ -33,9 +39,14 @@ class ZODBEvolutionManager:
         ``initial_db_version`` indicates the presumed version of a database
         which doesn't already have a version set.  If not supplied or is set
         to ``None``, the evolution manager will not attempt to construe the
-        version of a an unversioned db."""
-        import transaction
-        self.transaction = transaction
+        version of a an unversioned db. ``dry_run``, if True, tells the
+        manager not to commit any transactions.
+        """
+        if txn is _marker:
+            import transaction
+            self.transaction = transaction
+        else:
+            self.transaction = txn
         self.context = context
         self.package_name = evolve_packagename
         self.sw_version = sw_version
@@ -58,15 +69,19 @@ class ZODBEvolutionManager:
     def evolve_to(self, version):
         scriptname = '%s.evolve%s' % (self.package_name, version)
         evmodule = EntryPoint.parse('x=%s' % scriptname).load(False)
-        self.transaction.begin()
+        if self.transaction is not None:
+            self.transaction.begin()
         evmodule.evolve(self.context)
-        self.set_db_version(version)
-        self.transaction.commit()
+        self.set_db_version(version, commit=False)
+        if self.transaction is not None:
+            self.transaction.commit()
 
-    def set_db_version(self, version):
+    def set_db_version(self, version, commit=True):
         registry = self.root.setdefault(self.key, {})
         registry[self.package_name] = version
         self.root[self.key] = registry
+        if commit and self.transaction is not None:
+            self.transaction.commit()
 
     # b/w compatibility
     _set_db_version = set_db_version
