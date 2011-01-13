@@ -28,6 +28,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'setuptools',
     'zope.interface',
+    'repoze.tm2',
     ]
 
 setup(name='repoze.evolution',
