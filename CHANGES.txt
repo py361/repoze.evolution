@@ -1,11 +1,12 @@
-Unreleased
-----------
+0.4 (2011-01-13)
+----------------
 
 - Extended ``ZODBEvolutionManager`` to allow passing in a proxy for the
   transaction module, or None (to suppress transactions altogether).
 
 - Separated tests for ``ZODBEvolutionManager`` class from those for
   ``evolve_to_latest``.
+
 
 0.3 (2009-12-03)
 ----------------
@@ -29,12 +30,14 @@ Unreleased
 
 - Added new public method, ``set_db_version()`` to IEvolutionManager interface.
 
+
 0.2 (2009-06-25)
 ----------------
 
 - 100% test coverage.
 
-0.1
----
+
+0.1 (2008-10-11)
+----------------
 
 - Initial release.

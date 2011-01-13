@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2008 Agendaless Consulting and Contributors.
+# Copyright (c) 2008-2011 Agendaless Consulting and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -11,14 +11,9 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-
-__version__ = '0.4dev'
+__version__ = '0.4'
 
 import os
-
-from ez_setup import use_setuptools
-use_setuptools()
-
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -28,7 +23,7 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 requires = [
     'setuptools',
     'zope.interface',
-    ]
+]
 
 setup(name='repoze.evolution',
       version=__version__,
@@ -58,4 +53,4 @@ setup(name='repoze.evolution',
       extras_require={'transaction':['repoze.tm2']},
       entry_points = """\
       """
-     )
+)

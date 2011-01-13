@@ -1,3 +1,17 @@
+##############################################################################
+#
+# Copyright (c) 2008-2011 Agendaless Consulting and Contributors.
+# All Rights Reserved.
+#
+# This software is subject to the provisions of the BSD-like license at
+# http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
+# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
+# FITNESS FOR A PARTICULAR PURPOSE
+#
+##############################################################################
+
 from pkg_resources import EntryPoint
 from zope.interface import implements
 from zope.interface import Interface
@@ -18,6 +32,7 @@ class IEvolutionManager(Interface):
         """ Perform work to evolve to the integer ``version``.  This
         method is also responsible for setting the db version after a
         success."""
+
 
 _marker = object()
 class ZODBEvolutionManager:
@@ -85,6 +100,7 @@ class ZODBEvolutionManager:
 
     # b/w compatibility
     _set_db_version = set_db_version
+
 
 def evolve_to_latest(manager):
     """ Evolve the database to the latest software version using the
