@@ -1,92 +1,208 @@
 import unittest
 
+_marker = object()
+
 class ZODBEvolutionManagerTests(unittest.TestCase):
-    def _evolve(self, *arg, **kw):
-        from repoze.evolution import evolve_to_latest
-        return evolve_to_latest(*arg, **kw)
 
     def _getTargetClass(self):
         from repoze.evolution import ZODBEvolutionManager
         return ZODBEvolutionManager
 
-    def _makeOne(self, root, sw_version, initial_db_version=None):
+    def _makeOne(self, root=None, sw_version=None, initial_db_version=None,
+                 txn=_marker):
         klass = self._getTargetClass()
         context = DummyPersistent(root)
+        if txn is _marker:
+            txn = DummyTransaction()
         manager = klass(context, 'repoze.evolution.tests.fixtureapp.evolve',
                         sw_version, initial_db_version)
-        manager.transaction = DummyTransaction()
+        manager.transaction = txn
         return manager
 
-    def test_verify(self):
+    def test_verify_class_conforms_to_IEvolutionManager(self):
         from repoze.evolution import IEvolutionManager
         from zope.interface.verify import verifyClass
+        verifyClass(IEvolutionManager, self._getTargetClass())
+
+    def test_verify_instance_conforms_to_IEvolutionManager(self):
+        from repoze.evolution import IEvolutionManager
         from zope.interface.verify import verifyObject
+        verifyObject(IEvolutionManager, self._makeOne())
+
+    def test_root_property(self):
         klass = self._getTargetClass()
-        verifyClass(IEvolutionManager, klass)
-        inst = klass(None, None, None)
-        verifyObject(IEvolutionManager, inst)
-
-    def test_failure_no_db_version(self):
         root = {}
-        manager = self._makeOne(root, 1)
-        self.assertRaises(ValueError, self._evolve, manager)
+        context = DummyPersistent(root)
+        manager = klass(context, 'nonesuch', 42)
+        self.failUnless(manager.root is root)
 
-    def test_success_initial_db_version(self):
+    def test_get_sw_version(self):
+        klass = self._getTargetClass()
+        root = {}
+        context = DummyPersistent(root)
+        manager = klass(context, 'nonesuch', 42)
+        self.assertEqual(manager.get_sw_version(), 42)
+
+    def test_get_db_version_missing_from_root_uses_initial(self):
+        klass = self._getTargetClass()
+        root = {}
+        context = DummyPersistent(root)
+        manager = klass(context, 'nonesuch', 42, 22)
+        self.assertEqual(manager.get_db_version(), 22)
+
+    def test_get_db_version_extant_in_root(self):
+        klass = self._getTargetClass()
+        root = {'repoze.evolution': {'extant':11}}
+        context = DummyPersistent(root)
+        manager = klass(context, 'extant', 42, 22)
+        self.assertEqual(manager.get_db_version(), 11)
+
+    def test_get_db_version_missing_from_root_uses_initial_alt_key(self):
+        klass = self._getTargetClass()
+        root = {}
+        context = DummyPersistent(root)
+        manager = klass(context, 'nonesuch', 42, 22)
+        manager.key = 'alternate'
+        self.assertEqual(manager.get_db_version(), 22)
+
+    def test_get_db_version_extant_in_root_alt_key(self):
+        klass = self._getTargetClass()
+        root = {'repoze.evolution': {'extant':11},
+                'alternate': {'extant':33},
+               }
+        context = DummyPersistent(root)
+        manager = klass(context, 'extant', 42, 22)
+        manager.key = 'alternate'
+        self.assertEqual(manager.get_db_version(), 33)
+
+    def test_evolve_to_no_key_in_root(self):
         root = {}
         manager = self._makeOne(root, 1, 0)
-        version = self._evolve(manager)
-        self.assertEqual(version, 1)
+
+        manager.evolve_to(1)
+
         self.assertEqual(manager.context.evolved, 1)
         self.assertEqual(manager.transaction.committed, 1)
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 1)
 
-    def test_success_with_db_version(self):
+    def test_evolve_to_w_key_in_root(self):
         root = {'repoze.evolution':
                 {'repoze.evolution.tests.fixtureapp.evolve':1}}
         manager = self._makeOne(root, 2)
-        version = self._evolve(manager)
-        self.assertEqual(version, 2)
+
+        manager.evolve_to(2)
+
         self.assertEqual(manager.context.evolved, 2)
         self.assertEqual(manager.transaction.committed, 1)
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 2)
 
-    def test_evolve_error(self):
+    def test_evolve_to_script_raises(self):
         root = {'repoze.evolution':
-                {'repoze.evolution.tests.fixtureapp.evolve':0}}
+                {'repoze.evolution.tests.fixtureapp.evolve':2}}
         manager = self._makeOne(root, 3)
-        self.assertRaises(ValueError, self._evolve, manager)
-        self.assertEqual(manager.context.evolved, 2)
-        self.assertEqual(manager.transaction.committed, 2)
+
+        self.assertRaises(ValueError, manager.evolve_to, 3)
+
+        self.assertEqual(manager.transaction.committed, 0)
         reg = root['repoze.evolution']
         self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 2)
 
-    def test_noevolve(self):
-        root = {'repoze.evolution':
-                {'repoze.evolution.tests.fixtureapp.evolve':1}}
-        manager = self._makeOne(root, 1)
-        version = self._evolve(manager)
+    def test_set_db_version_missing_from_root_uses_initial(self):
+        klass = self._getTargetClass()
+        root = {}
+        context = DummyPersistent(root)
+        manager = klass(context, 'extant', 42, 33)
+        manager.set_db_version(22)
+        self.assertEqual(root['repoze.evolution']['extant'], 22)
+
+    def test_set_db_version_extant_in_root(self):
+        klass = self._getTargetClass()
+        root = {'repoze.evolution': {'extant':11}}
+        context = DummyPersistent(root)
+        manager = klass(context, 'extant', 42, 33)
+        manager.set_db_version(22)
+        self.assertEqual(root['repoze.evolution']['extant'], 22)
+
+    def test_set_db_version_missing_from_root_uses_initial_alt_key(self):
+        klass = self._getTargetClass()
+        root = {}
+        context = DummyPersistent(root)
+        manager = klass(context, 'extant', 42, 22)
+        manager.key = 'alternate'
+        manager.set_db_version(22)
+        self.assertEqual(root['alternate']['extant'], 22)
+
+    def test_set_db_version_extant_in_root_alt_key(self):
+        klass = self._getTargetClass()
+        root = {'repoze.evolution': {'extant':11},
+                'alternate': {'extant':33},
+               }
+        context = DummyPersistent(root)
+        manager = klass(context, 'extant', 42, 22)
+        manager.key = 'alternate'
+        manager.set_db_version(22)
+        self.assertEqual(root['alternate']['extant'], 22)
+
+
+class Test_evolve_to_latest(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from repoze.evolution import evolve_to_latest
+        return evolve_to_latest(*args, **kw)
+
+    def _makeMgr(self, root=None, sw_version=None, initial_db_version=None,
+                 txn=_marker):
+        from repoze.evolution import ZODBEvolutionManager as klass
+        context = DummyPersistent(root)
+        if txn is _marker:
+            txn = DummyTransaction()
+        manager = klass(context, 'repoze.evolution.tests.fixtureapp.evolve',
+                        sw_version, initial_db_version)
+        manager.transaction = txn
+        return manager
+
+    def test_swver_not_integer(self):
+        manager = DummyManager('1', 1)
+        self.assertRaises(ValueError, self._callFUT, manager)
+
+    def test_no_db_version(self):
+        manager = DummyManager(1, None)
+        self.assertRaises(ValueError, self._callFUT, manager)
+
+    def test_dbver_not_integer(self):
+        manager = DummyManager(1, '1')
+        self.assertRaises(ValueError, self._callFUT, manager)
+
+    def test_dbver_lt_swver(self):
+        manager = DummyManager(1, 0)
+
+        version = self._callFUT(manager)
+
         self.assertEqual(version, 1)
-        self.assertEqual(manager.context.evolved, None)
-        self.assertEqual(manager.transaction.committed, 0)
-        reg = root['repoze.evolution']
-        self.assertEqual(reg['repoze.evolution.tests.fixtureapp.evolve'], 1)
+        self.assertEqual(manager._evolved_to, [1])
 
-    def test_evolve_swver_not_integer(self):
-        root = {'repoze.evolution':
-                {'repoze.evolution.tests.fixtureapp.evolve':1}}
-        manager = self._makeOne(root, '1')
-        self.assertRaises(ValueError, self._evolve, manager)
+    def test_dbver_gt_swver(self):
+        manager = DummyManager(1, 2)
 
-    def test_evolve_dbver_not_integer(self):
-        root = {'repoze.evolution':
-                {'repoze.evolution.tests.fixtureapp.evolve':'1'}}
-        manager = self._makeOne(root, 1)
-        self.assertRaises(ValueError, self._evolve, manager)
+        version = self._callFUT(manager)
+
+        self.assertEqual(version, 2)
+        self.assertEqual(manager._evolved_to, [])
+
+    def test_dbver_eq_swver(self):
+        manager = DummyManager(1, 1)
+
+        version = self._callFUT(manager)
+
+        self.assertEqual(version, 1)
+        self.assertEqual(manager._evolved_to, [])
+
 
 class Dummy(object):
     pass
+
 
 class DummyPersistent(object):
     evolved = None
@@ -94,6 +210,7 @@ class DummyPersistent(object):
         self._p_jar = Dummy()
         self._p_jar.root = lambda *arg: root
         self.error = False
+
 
 class DummyTransaction(object):
     committed = 0
@@ -105,4 +222,18 @@ class DummyTransaction(object):
         self.begun = self.begun + 1
 
 
+class DummyManager(object):
 
+    def __init__(self, sw_version, db_version):
+        self._sw_version = sw_version
+        self._db_version = db_version
+        self._evolved_to = []
+
+    def get_sw_version(self):
+        return self._sw_version
+
+    def get_db_version(self):
+        return self._db_version
+
+    def evolve_to(self, version):
+        self._evolved_to.append(version)
