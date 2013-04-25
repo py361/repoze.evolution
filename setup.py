@@ -17,8 +17,10 @@ import os
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.txt')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
+with open(os.path.join(here, 'README.txt')) as f:
+    README = f.read()
+with open(os.path.join(here, 'CHANGES.txt')) as f:
+    CHANGES = f.read()
 
 requires = [
     'setuptools',
@@ -32,7 +34,11 @@ setup(name='repoze.evolution',
       classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
-        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Internet :: WWW/HTTP :: WSGI",
@@ -48,9 +54,9 @@ setup(name='repoze.evolution',
       namespace_packages=['repoze'],
       zip_safe=False,
       install_requires = requires,
-      tests_require = requires + ['repoze.tm2', 'Sphinx'],
+      tests_require = requires + ['transaction'],
       test_suite="repoze.evolution",
-      extras_require={'transaction':['repoze.tm2']},
+      extras_require={'transaction':['transaction']},
       entry_points = """\
       """
 )
