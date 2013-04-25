@@ -58,6 +58,7 @@ setup(name='repoze.evolution',
       test_suite="repoze.evolution",
       extras_require={'transaction':['transaction'],
                       'testing':['transaction'],
+                      'docs':['Sphinx', 'repoze.sphinx.autointerface'],
                      },
       entry_points = """\
       """
