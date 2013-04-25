@@ -11,7 +11,7 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-__version__ = '0.5dev'
+__version__ = '0.5'
 
 import os
 from setuptools import setup, find_packages
