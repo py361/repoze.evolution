@@ -1,5 +1,5 @@
-repoze.atemplate README
-=======================
+repoze.eoolution TODOs
+======================
 
 - [_] Add 'dry-run' support to managers which currently commit transactions.
 
