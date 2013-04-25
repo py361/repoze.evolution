@@ -1,6 +1,8 @@
 0.5 (unreleased)
 ----------------
 
+- Add support for building docs and testing doctest snippets under ``tox``.
+
 - Add ``setup.py docs`` alias (installs Sphinx and dependencies).
 
 - Add ``setup.py dev`` alias (installs testing dependencies).
