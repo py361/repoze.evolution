@@ -56,7 +56,9 @@ setup(name='repoze.evolution',
       install_requires = requires,
       tests_require = requires + ['transaction'],
       test_suite="repoze.evolution",
-      extras_require={'transaction':['transaction']},
+      extras_require={'transaction':['transaction'],
+                      'testing':['transaction'],
+                     },
       entry_points = """\
       """
 )
