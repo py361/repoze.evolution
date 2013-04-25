@@ -1,7 +1,13 @@
 0.5 (unreleased)
 ----------------
 
-- TBD
+- Add ``setup.py docs`` alias (installs Sphinx and dependencies).
+
+- Add ``setup.py dev`` alias (installs testing dependencies).
+
+- Added support for continuous integration using ``tox`` and ``jenkins``.
+
+- Drop support for Python 2.4 / 2.5.
 
 
 0.4 (2011-01-13)
