@@ -13,31 +13,16 @@
 ##############################################################################
 
 from pkg_resources import EntryPoint
-from zope.interface import implements
-from zope.interface import Interface
+from zope.interface import implementer
 
-class IEvolutionManager(Interface):
-    def get_sw_version():
-        """ Return the software version of the managed package """
-
-    def get_db_version():
-        """ Return the database version of the managed package """
-
-    def set_db_version(version):
-        """ Write the database version of the managed package to the database.
-        Should be used to bootstrap your database when the database is created.
-        """
-
-    def evolve_to(version):
-        """ Perform work to evolve to the integer ``version``.  This
-        method is also responsible for setting the db version after a
-        success."""
-
+from repoze.evolution.interfaces import IEvolutionManager
 
 _marker = object()
+
+
+@implementer(IEvolutionManager)
 class ZODBEvolutionManager:
     key = 'repoze.evolution'
-    implements(IEvolutionManager)
     def __init__(self,
                  context,
                  evolve_packagename,

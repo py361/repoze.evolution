@@ -33,12 +33,12 @@ class ZODBEvolutionManagerTests(unittest.TestCase):
         return manager
 
     def test_verify_class_conforms_to_IEvolutionManager(self):
-        from repoze.evolution import IEvolutionManager
+        from repoze.evolution.interfaces import IEvolutionManager
         from zope.interface.verify import verifyClass
         verifyClass(IEvolutionManager, self._getTargetClass())
 
     def test_verify_instance_conforms_to_IEvolutionManager(self):
-        from repoze.evolution import IEvolutionManager
+        from repoze.evolution.interfaces import IEvolutionManager
         from zope.interface.verify import verifyObject
         verifyObject(IEvolutionManager, self._makeOne())
 
