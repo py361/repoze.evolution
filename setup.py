@@ -11,7 +11,7 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-__version__ = '0.5'
+__version__ = '0.6dev'
 
 import os
 from setuptools import setup, find_packages
@@ -37,6 +37,9 @@ setup(name='repoze.evolution',
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Internet :: WWW/HTTP",

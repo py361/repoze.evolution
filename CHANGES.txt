@@ -1,3 +1,12 @@
+``repoze.evolution`` Changelog
+==============================
+
+0.6 (unreleased)
+----------------
+
+- Document / test compatibility with Python 3.2 / 3.3.
+
+
 0.5 (2013-04-25)
 ----------------
 
